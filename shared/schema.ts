@@ -33,6 +33,12 @@ export const updateItemSchema = createInsertSchema(items).pick({
   name: true,
   description: true,
 });
+// In shared/schema.ts
+export const session = pgTable('session', {
+  sid: text('sid').primaryKey(),
+  sess: text('sess').notNull(),
+  expire: timestamp('expire').notNull(),
+});
 
 export type Item = typeof items.$inferSelect;
 export type InsertItem = z.infer<typeof insertItemSchema>;

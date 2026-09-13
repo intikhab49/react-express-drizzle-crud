@@ -1,237 +1,147 @@
-SimpleCRUD
-SimpleCRUD is a RESTful API built with Express.js and TypeScript, using Neon PostgreSQL for data storage and Drizzle ORM for type-safe database interactions. It supports user authentication and CRUD operations for items, with session-based authentication managed via a PostgreSQL session table.
-Features
+<div align="center">
 
-Authentication: Register, login, logout, and retrieve user data.
-CRUD Operations: Create and list items.
-Database: Neon PostgreSQL with users, items, and session tables.
-ORM: Drizzle ORM with schema defined in shared/schema.ts.
-Routes:
-POST /api/register: Create a new user.
-POST /api/login: Authenticate and start a session.
-POST /api/logout: Clear the session.
-GET /api/user: Retrieve authenticated user data.
-GET /api/items: List all items.
-POST /api/items: Create a new item.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:431407,50:EA580C,100:FDBA74&height=170&section=header&text=Full-Stack%20TypeScript%20CRUD&fontSize=44&fontColor=ffffff&fontAlignY=38&desc=React%20%C2%B7%20Express%20%C2%B7%20Drizzle%20ORM%20%C2%B7%20Neon%20PostgreSQL&descSize=17&descAlignY=60&animation=fadeIn" width="100%" alt="Full-stack TypeScript CRUD — React, Express, Drizzle ORM, Neon PostgreSQL"/>
 
+# Full-Stack TypeScript CRUD App with Authentication — React, Express, Drizzle ORM & Neon Postgres
 
+**A type-safe starter for real apps: session-based login with Passport, a PostgreSQL-backed session store, Drizzle migrations, and a React dashboard to create, edit, filter and delete items.**
 
-Project Structure
-SimpleCRUD/
-├── server/
-│   ├── auth.ts       # Authentication logic (register, login, logout)
-│   ├── db.ts         # Database connection setup
-│   ├── index.ts      # Express app setup and middleware
-│   ├── routes.ts     # API route handlers
-│   ├── storage.ts    # Database queries
-│   ├── vite.ts       # Vite configuration (likely for frontend/dev)
-├── shared/
-│   ├── schema.ts     # Drizzle schema for users, items, session
-├── migrations/       # Drizzle migration files
-├── drizzle.config.ts # Drizzle migration configuration
-├── .env              # Environment variables (DATABASE_URL, SESSION_SECRET)
-├── .gitignore        # Git ignore file
-├── package.json      # Dependencies and scripts
-├── README.md         # This file
+<p>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/React%2018-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 18"/>
+  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express"/>
+  <img src="https://img.shields.io/badge/Drizzle%20ORM-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black" alt="Drizzle ORM"/>
+  <img src="https://img.shields.io/badge/Neon%20Postgres-00E599?style=for-the-badge&logo=postgresql&logoColor=black" alt="Neon PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"/>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"/>
+</p>
 
-Database Schema
-Defined in shared/schema.ts:
-// Users
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
+</div>
 
-// Items
-export const items = pgTable("items", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+---
 
-// Session
-export const session = pgTable('session', {
-  sid: text('sid').primaryKey(),
-  sess: text('sess').notNull(),
-  expire: timestamp('expire').notNull(),
-});
+## ✨ Features
 
-Prerequisites
+- 🔐 **Authentication** — register, login, logout and current-user endpoints with **Passport (local strategy)**
+- 🧂 **Secure password hashing** — Node `crypto.scrypt` with per-user salt and timing-safe comparison
+- 🗄️ **Postgres session store** — sessions persisted in a `session` table via `connect-pg-simple`
+- 📦 **Full CRUD for items** — create, list, view, update and delete
+- 🧬 **End-to-end type safety** — one Drizzle schema in `shared/schema.ts` shared by server and client, validated with Zod
+- 🖥️ **React dashboard** — protected routes, item cards, create/edit modal, filter bar, delete confirmation, toasts, loading and empty states
+- ⚡ **Vite + Express in one process** for development, bundled with esbuild for production
 
-Node.js (v18 or higher)
-npm
-PostgreSQL client (psql) for manual database access
-Neon account for database hosting (Neon Console)
+## 🏗️ Architecture
 
-Setup Instructions
+```mermaid
+flowchart LR
+    subgraph CLIENT["React + Vite client"]
+        AUTH["auth-page"] --> DASH["dashboard<br/>(protected route)"]
+        DASH --> RQ["TanStack Query"]
+    end
+    RQ -->|"fetch + session cookie"| API
+    subgraph SERVER["Express API :5000"]
+        API["routes.ts<br/>/api/items"] --> ST["storage.ts"]
+        PASS["auth.ts · Passport<br/>/api/register · /login · /logout · /user"]
+    end
+    ST -->|"Drizzle ORM"| DB[("Neon PostgreSQL<br/>users · items · session")]
+    PASS --> DB
+```
 
-Clone the Repository:
-git clone https://github.com/intikhab49/SimpleCRUD.git
-cd SimpleCRUD
+## 🚀 Getting started
 
+**Prerequisites:** Node.js 18+, npm and a PostgreSQL database (a free [Neon](https://neon.tech) project works well).
 
-Install Dependencies:
+```bash
+git clone https://github.com/intikhab49/react-express-drizzle-crud.git
+cd react-express-drizzle-crud
 npm install
+```
 
+Create a `.env` file in the project root with **your own** values:
 
-Configure Environment:Create a .env file in the root directory:
+```ini
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
-SESSION_SECRET=your_secure_secret_here
+SESSION_SECRET=a-long-random-string
+```
 
-
-Apply Database Migrations:
+```bash
 npx drizzle-kit generate
 npx drizzle-kit push
-
-
-Run the Application:
 npm run dev
+```
 
-The API will be available at http://localhost:5000.
+The app and API are served at **http://localhost:5000**.
 
-Test Routes:
-# Register a user
-curl -X POST http://localhost:5000/api/register -H "Content-Type: application/json" -d '{"username":"testuser","password":"testpass"}'
-# Login and save session cookie
-curl -X POST http://localhost:5000/api/login -H "Content-Type: application/json" -d '{"username":"testuser","password":"testpass"}' -c cookies.txt
-# Create an item
-curl -X POST http://localhost:5000/api/items -H "Content-Type: application/json" -b cookies.txt -d '{"name":"Test Item","description":"A sample item"}'
-# List items
-curl -X GET http://localhost:5000/api/items -b cookies.txt
-# Get user data
-curl -X GET http://localhost:5000/api/user -b cookies.txt
-# Logout
+## 📡 API
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/register` | — | Create a user and start a session |
+| POST | `/api/login` | — | Log in |
+| POST | `/api/logout` | — | End the session |
+| GET | `/api/user` | ✔ session | Current user (401 if not logged in) |
+| GET | `/api/items` | — | List items |
+| GET | `/api/items/:id` | — | Get one item |
+| POST | `/api/items` | — | Create an item |
+| PUT | `/api/items/:id` | — | Update an item |
+| DELETE | `/api/items/:id` | — | Delete an item |
+
+> [!NOTE]
+> The dashboard is a protected route on the client, but the `/api/items` endpoints don't check the session on the server yet. Add a `req.isAuthenticated()` guard before exposing this publicly.
+
+<details>
+<summary><b>Try it with curl</b></summary>
+
+```bash
+curl -X POST http://localhost:5000/api/register -H "Content-Type: application/json" \
+     -d '{"username":"testuser","password":"testpass"}' -c cookies.txt
+curl -X POST http://localhost:5000/api/items -H "Content-Type: application/json" -b cookies.txt \
+     -d '{"name":"Test Item","description":"A sample item"}'
+curl http://localhost:5000/api/items -b cookies.txt
+curl -X PUT http://localhost:5000/api/items/1 -H "Content-Type: application/json" -b cookies.txt \
+     -d '{"name":"Renamed item"}'
+curl -X DELETE http://localhost:5000/api/items/1 -b cookies.txt
 curl -X POST http://localhost:5000/api/logout -b cookies.txt
+```
 
+</details>
 
+## 🗄️ Database schema
 
-Development Challenges and Solutions
-The project faced several issues during development, resolved as follows:
+```ts
+// shared/schema.ts
+users   (id serial PK, username text unique, password text)
+items   (id serial PK, name text, description text, created_at timestamp default now())
+session (sid text PK, sess text, expire timestamp)
+```
 
-Database Connectivity:
+## 🧯 Lessons learned
 
-Issue: Failed to connect to Neon PostgreSQL database.
-Fix: Configured direct connection string in .env and verified with psql.
+| Problem | Fix |
+|---|---|
+| Couldn't connect to Neon | Use the direct connection string with `sslmode=require` and verify it with `psql` first |
+| `relation "users" does not exist` (500s) | Tables weren't created — generate and push Drizzle migrations before starting the server |
+| `drizzle-kit generate` skipped tables | Point `drizzle.config.ts` at the correct schema path and include the `session` table in the schema |
 
+## 🗂️ Project structure
 
-Missing Tables:
+```
+client/src/
+├── pages/        # auth-page · dashboard · home · not-found
+├── components/   # ItemCard · ItemFormModal · FilterBar · DeleteConfirmModal · Navbar · toasts
+├── hooks/        # use-auth · use-toast · use-mobile
+└── lib/          # protected-route · queryClient · types
+server/           # index · auth · routes · storage · db · vite
+shared/schema.ts  # Drizzle schema + Zod validators
+migrations/       # Drizzle migrations
+```
 
-Issue: users and items tables missing, causing 500 errors (e.g., relation "users" does not exist).
-Fix: Manually created tables via psql, later managed with Drizzle migrations:CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL
-);
-CREATE TABLE items (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
+---
 
+<div align="center">
 
+**Built by [Intikhab Azam](https://github.com/intikhab49)** — AI & automation engineer · full-stack TypeScript · backend
 
+<sub>Keywords: full-stack TypeScript · React Express CRUD · Drizzle ORM tutorial · Neon serverless Postgres · Passport authentication · session auth · connect-pg-simple · TanStack Query · Tailwind CSS · Vite</sub>
 
-Drizzle Migration Issues:
-
-Issue: npx drizzle-kit generate failed due to incorrect schema path; migrations omitted session table.
-Fix: Updated drizzle.config.ts to point to shared/schema.ts, added session table to schema, and applied migrations:npx drizzle-kit generate
-npx drizzle-kit push
-
-
-
-
-Authentication Errors:
-
-Issue: 401 Not authenticated errors for /api/user and /api/items.
-Fix: Implemented session-based authentication using express-session with connect-pg-simple, generated cookies via /api/login, and used them for protected routes.
-
-
-Dependency Installation:
-
-Issue: ENOTEMPTY error during npm install for class-variance-authority.
-Fix: Cleared node_modules and cache:rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install
-
-
-
-
-Schema Mismatch:
-
-Issue: users table lacked created_at in schema compared to early manual setups.
-Fix: Noted application worked without created_at; provided option to add it via schema update and migrations.
-
-
-Browserslist Warning:
-
-Issue: Outdated browserslist data warning during npm run dev.
-Fix: Updated with:npx update-browserslist-db@latest
-
-
-
-
-
-Troubleshooting
-
-Connection Issues: Verify DATABASE_URL in .env and network connectivity to Neon.
-Migration Errors: Ensure drizzle.config.ts points to shared/schema.ts and run npx drizzle-kit push.
-Authentication Errors: Check session cookies (cookies.txt) and ensure /api/login is called before protected routes.
-Push Errors: Resolve Git conflicts with git pull origin main or force push cautiously (git push --force).
-
-Next Steps
-
-Add created_at to users:Update shared/schema.ts:
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-Apply migrations:
-npx drizzle-kit generate
-npx drizzle-kit push
-
-
-Enhance Security:
-
-Use HTTPS and set cookie: { secure: true } in production.
-Ensure passwords are hashed (likely using bcrypt in server/auth.ts).
-Validate inputs with zod (already used in schema).
-
-
-Frontend Integration:
-
-Leverage server/vite.ts to build a React frontend consuming the API.
-
-
-Testing:
-
-Add Jest and Supertest for route testing:npm install --save-dev jest supertest
-
-
-
-
-Deployment:
-
-Deploy to Vercel or Railway, ensuring .env is configured securely.
-
-
-Monitoring:
-
-Use Neon’s monitoring tools or integrate Prometheus for performance metrics.
-
-
-
-References
-
-Neon Documentation
-Drizzle ORM
-Express Session
-Connect PG Simple
-
-License
-This project is licensed under the MIT License.
+</div>
